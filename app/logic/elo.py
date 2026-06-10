@@ -2,7 +2,6 @@
 
 DEFAULT_K_FACTOR = 32
 
-
 def compute_new_ratings(
     rating_a: int,
     rating_b: int,
@@ -17,7 +16,6 @@ def compute_new_ratings(
     rating_a = rating_a + k * (score_a - expected_a)
     rating_b = rating_b + k * (score_b - expected_b)
     return round(rating_a), round(rating_b)
-
 
 def expected_score(rating_a: int, rating_b: int) -> float:
     """Probability that player A beats player B given their ratings."""

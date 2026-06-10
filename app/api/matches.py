@@ -24,6 +24,12 @@ def record_result_endpoint(
     if match is None:
         raise HTTPException(status_code=404, detail="Match not found")
 
+    participants = {match.player_a_id, match.player_b_id}
+    if body.winner_id not in participants:
+        raise HTTPException(status_code=400, detail="Winner must be a participant in the match")
+    
+    if not current_user.is_admin and current_user.id not in participants:
+        raise HTTPException(status_code=403, detail="Only participants or admins can record match results")
     try:
         return record_result(session, match_id, body.winner_id)
     except ValueError as e:

@@ -98,9 +98,20 @@ def record_result(session: Session, match_id: int, winner_id: int) -> Match:
         raise ValueError(f"match {match_id} not found")
 
     tournament = session.get(Tournament, match.tournament_id)
+    if tournament is None:
+        raise ValueError(f"tournament {match.tournament_id} not found")
+
     if tournament.status != TournamentStatus.IN_PROGRESS:
         raise ValueError(f"tournament {tournament.id} is not in progress")
     
+    if match.winner_id is not None:
+        raise ValueError(f"match {match_id} already has a recorded result")
+    
+    if match.player_a_id is None or match.player_b_id is None:
+        raise ValueError(f"match {match_id} does not have two players assigned yet")
+    
+    if winner_id not in {match.player_a_id, match.player_b_id}:
+        raise ValueError(f"winner must be a participant in the match")
    
     match.winner_id = winner_id
     session.add(match)
@@ -121,9 +132,9 @@ def record_result(session: Session, match_id: int, winner_id: int) -> Match:
             )
         ).one()
         if match.next_slot == "a":
-            parent.player_b_id = winner_id
-        else:
             parent.player_a_id = winner_id
+        else:
+            parent.player_b_id = winner_id
         session.add(parent)
 
     session.commit()
