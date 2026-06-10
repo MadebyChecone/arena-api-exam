@@ -26,7 +26,6 @@ class RegisterAccountRequest(BaseModel):
     username: str
     email: str
     password: str
-    is_admin: bool = False
 
 
 class RegisteredPlayer(BaseModel):
@@ -49,7 +48,7 @@ def register(
             username=body.username,
             email=body.email,
             password=body.password,
-            is_admin=body.is_admin,
+            is_admin=False,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

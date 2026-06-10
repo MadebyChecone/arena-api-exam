@@ -63,9 +63,25 @@ def decode_access_token(token: str) -> int:
 
 def hash_password(password: str) -> str:
     """Return the stored password representation."""
+    salt = os.urandom(16)
+    hash_bytes = hashlib.pbkdf2_hmac(
+        "sha256", password.encode("utf-8"), salt, 100000
+    )
+    password = salt.hex() + ":" + hash_bytes.hex()
     return password
 
 
 def verify_password(password: str, stored_hash: str) -> bool:
     """Return True if `password` matches the stored value."""
-    return password == stored_hash
+    try:
+        salt_hex, hash_hex = stored_hash.split(":")
+    except ValueError:
+        return False
+
+    salt = bytes.fromhex(salt_hex)
+    expected_hash = bytes.fromhex(hash_hex)
+
+    hash_bytes = hashlib.pbkdf2_hmac(
+        "sha256", password.encode("utf-8"), salt, 100000
+    )
+    return hmac.compare_digest(hash_bytes, expected_hash)
