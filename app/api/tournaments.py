@@ -90,7 +90,7 @@ def start_tournament_endpoint(
 def cancel_tournament_endpoint(
     tournament_id: int,
     session: SessionDep,
-    current_user: CurrentUser,
+    admin_user: AdminUser,
 ) -> Tournament:
     try:
         return cancel_tournament(session, tournament_id)

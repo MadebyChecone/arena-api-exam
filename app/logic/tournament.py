@@ -2,7 +2,7 @@ from sqlmodel import Session, select
 
 from app.logic.bracket import build_bracket, seed_players
 from app.logic.elo import compute_new_ratings
-from app.logic.tournament_state import validate_transition
+from app.logic.tournament_state import validate_transition, is_terminal
 from app.models import Match, Player, Tournament, TournamentPlayer, TournamentStatus
 
 
@@ -98,6 +98,10 @@ def record_result(session: Session, match_id: int, winner_id: int) -> Match:
         raise ValueError(f"match {match_id} not found")
 
     tournament = session.get(Tournament, match.tournament_id)
+    if tournament.status != TournamentStatus.IN_PROGRESS:
+        raise ValueError(f"tournament {tournament.id} is not in progress")
+    
+   
     match.winner_id = winner_id
     session.add(match)
     _update_elo(session, match, winner_id)
