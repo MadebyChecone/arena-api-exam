@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login · ArenaAPI Debug UI</title>
+    <link rel="stylesheet" href="/static/vendor/pico.min.css" />
+    <link rel="stylesheet" href="/static/css/app.css" />
+  </head>
+  <body>
+    <main class="container login-page">
+      <article>
+        <h1>ArenaAPI Debug UI</h1>
+        <p>Login to smoke-test the API with a seeded database.</p>
+
+        <form id="login-form">
+          <label>
+            Username
+            <input name="username" autocomplete="username" required />
+          </label>
+
+          <label>
+            Password
+            <input
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+
+          <button type="submit">Login</button>
+        </form>
+
+        <p id="login-message"></p>
+
+        <footer>
+          After running <code>make seed</code>, try
+          <code>admin / admin123</code> or <code>alice / password123</code>.
+        </footer>
+      </article>
+    </main>
+
+    <script type="module" src="/static/ui/login-page.js"></script>
+  </body>
+</html>

@@ -1,0 +1,41 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    # Skip the initial commit pushed by Classroom when it provisions the student
+    # repo from the template — there's no student code to grade yet.
+    if: github.actor != 'github-classroom[bot]'
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - name: Verify grader (system tests)
+        run: python -m pytest grader/tests/system
+
+      - name: Run grading
+        run: python -m grader.engine.run
+
+      - name: Publish grading summary
+        if: always()
+        run: cat grading-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload grading results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: grading-results
+          path: |
+            grading-results.json
+            grading-summary.md
+          if-no-files-found: ignore

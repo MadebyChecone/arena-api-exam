@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tournament · ArenaAPI Debug UI</title>
+    <link rel="stylesheet" href="/static/vendor/pico.min.css" />
+    <link rel="stylesheet" href="/static/css/app.css" />
+  </head>
+  <body data-tournament-id="{{ tournament_id }}">
+    <main class="container">
+      <nav>
+        <ul>
+          <li><strong>ArenaAPI Debug UI</strong></li>
+        </ul>
+        <ul>
+          <li><a href="/web/" class="secondary">Tournaments</a></li>
+          <li><button id="logout-button" class="secondary">Logout</button></li>
+        </ul>
+      </nav>
+
+      <p id="status-message"></p>
+
+      <article>
+        <header>
+          <h1 id="tournament-title">Tournament #{{ tournament_id }}</h1>
+          <button id="refresh-button" class="secondary">Refresh</button>
+        </header>
+      </article>
+
+      <article>
+        <h2>Summary</h2>
+        <div id="summary">Loading…</div>
+      </article>
+
+      <article>
+        <h2>Tournament tree</h2>
+        <div id="bracket">Loading…</div>
+      </article>
+    </main>
+
+    <script type="module" src="/static/ui/tournament-detail-page.js"></script>
+  </body>
+</html>
