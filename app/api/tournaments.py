@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from sqlmodel import select
 
 from app.api.auth import CurrentUser
+from app.api.auth import AdminUser
 from app.database import SessionDep
 from app.logic.summary import TournamentSummary, tournament_summary
 from app.logic.tournament import (
@@ -29,7 +30,7 @@ class RegisterPlayerRequest(BaseModel):
 def create_tournament_endpoint(
     body: CreateTournamentRequest,
     session: SessionDep,
-    current_user: CurrentUser,
+    admin_user: AdminUser,
 ) -> Tournament:
     try:
         return create_tournament(session, name=body.name, max_players=body.max_players)
@@ -38,7 +39,7 @@ def create_tournament_endpoint(
 
 
 @router.get("", response_model=list[Tournament])
-def list_tournaments(session: SessionDep) -> list[Tournament]:
+def list_tournaments(session: SessionDep, current_user: CurrentUser) -> list[Tournament]:
     return list(session.exec(select(Tournament).order_by(Tournament.name)).all())
 
 
@@ -64,6 +65,8 @@ def register_player_endpoint(
     session: SessionDep,
     current_user: CurrentUser,
 ) -> dict[str, int]:
+    if not current_user.is_admin and current_user.id != body.player_id:
+        raise HTTPException(status_code=403, detail="Not authorized to register this player")
     try:
         register_player(session, tournament_id, body.player_id)
     except ValueError as e:

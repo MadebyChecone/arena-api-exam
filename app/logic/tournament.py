@@ -8,6 +8,8 @@ from app.models import Match, Player, Tournament, TournamentPlayer, TournamentSt
 
 def create_tournament(session: Session, name: str, max_players: int) -> Tournament:
     """Create a pending tournament."""
+    if max_players < 4 or (max_players & (max_players - 1)) != 0:
+        raise ValueError("max_players must be a power of 2 and at least 4")
     tournament = Tournament(
         name=name,
         max_players=max_players,
@@ -26,11 +28,41 @@ def register_player(session: Session, tournament_id: int, player_id: int) -> Tou
         raise ValueError(f"tournament {tournament_id} not found")
 
     player = session.get(Player, player_id)
+
     if player is None:
         raise ValueError(f"player {player_id} not found")
 
+    if tournament.status != TournamentStatus.PENDING:
+        raise ValueError(f"tournament {tournament_id} is not accepting registrations")
+    
+    if not player.is_available:
+        raise ValueError(f"player {player_id} is not available for registration")
+
+    existing_registration = session.exec(
+        select(TournamentPlayer).where(
+            TournamentPlayer.tournament_id == tournament_id,
+            TournamentPlayer.player_id == player_id,
+        )
+    ).first()
+
+    if existing_registration is not None:
+        raise ValueError(f"player already registered")
+
+    registered_player = session.exec(
+        select(TournamentPlayer).where(
+            TournamentPlayer.tournament_id == tournament_id
+        )
+    ).all()   
+    
+    if len(registered_player) >= tournament.max_players:
+        raise ValueError(f"tournament is already full")
+
     session.add(TournamentPlayer(tournament_id=tournament_id, player_id=player_id))
+    player.is_available = False
+    session.add(player)
+
     session.commit()
+    session.refresh(tournament)
     return tournament
 
 
@@ -74,6 +106,8 @@ def record_result(session: Session, match_id: int, winner_id: int) -> Match:
         validate_transition(tournament.status, TournamentStatus.FINISHED)
         tournament.status = TournamentStatus.FINISHED
         session.add(tournament)
+
+        _free_registered_players(session, tournament.id)
     else:
         parent = session.exec(
             select(Match).where(
@@ -102,6 +136,9 @@ def cancel_tournament(session: Session, tournament_id: int) -> Tournament:
 
     tournament.status = TournamentStatus.CANCELLED
     session.add(tournament)
+
+    _free_registered_players(session, tournament_id)
+
     session.commit()
     session.refresh(tournament)
     return tournament
